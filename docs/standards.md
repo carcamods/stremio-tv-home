@@ -37,7 +37,8 @@ Hooks are pinned to commits (`# frozen:` tags), and CI runs a fixed pre-commit v
 ## Git and PRs
 
 - Short-lived `type/short-description` branches, Conventional Commits (`feat(lists): …`, `docs: …`),
-  squash merge. Only the owner merges, tags and publishes.
+  squash merge. Only the owner merges, tags and publishes. A ruleset on `main` enforces it: changes arrive
+  only through PRs, squash-merged, with the three CI checks green; nobody can bypass it.
 - A PR is done when CI is green, `CHANGELOG.md` has an entry, `README.md` and the guides match the new
   behaviour, decisions have an ADR, and the touched `AGENTS.md` files and "Active work" are current.
 - Commits use the owner's GitHub private email in this repo. No AI attribution anywhere.

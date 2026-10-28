@@ -2,6 +2,17 @@
 
 Newest first. Each entry says what changed and why.
 
+## [2026-10-28] v1.0.0 released
+
+### Changed
+
+- The repo is public and stage 1 is released as `v1.0.0`, at commit `dc0b61b`, which its release notes
+  name so people can check what setup pinned (ADR 0009). Before anyone was pointed at it, release tags got
+  a ruleset that blocks moving or deleting them, and releases became immutable (ADR 0008), because every
+  builder runs that code with the person's keys.
+- `main` takes changes only through squash-merged PRs with the three CI checks green, with no bypass.
+- The owner's lists run from `v1.0.0` with its commit pinned, set up the way the guide tells everyone else.
+
 ## [2026-10-28] Stage 1: Trakt lists as a private Stremio addon
 
 ### Added

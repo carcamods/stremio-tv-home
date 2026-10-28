@@ -20,16 +20,13 @@ task needs, not the whole repo.
 
 ## Active work (updated 2026-10-28)
 
-- **Done:** stage 1 built and reviewed before publication: lists served at a private link from the
-  person's Cloudflare account (ADR 0002), keys typed by the person into `connect.py` (ADR 0007),
-  `released_only` (ADR 0005). Since 2026-10-28 the owner's lists run on it from `tv-lists-builder` (a test
-  build of the unreleased code), installed in Stremio and TV Home. A second review's fixes are in: builders
-  pin the release's commit (ADR 0009), `connect.py --cloudflare` makes a missing link, kept rows are cut
-  to catalog fields, gitleaks rules for private links and Client IDs, size checks that work in CI.
-- **Next (owner):** recreate the repo once more from one clean commit (the first history still had
-  personal details), then make it public, protect release tags and turn on immutable releases (ADR 0008),
-  the ruleset on `main`, release `v1.0.0` with its commit in the notes; then switch `tv-lists-builder` to
-  the release workflow (`docs/checklist.md`).
+- **Done:** stage 1 is public. `v1.0.0` released on 2026-10-28 at commit `dc0b61b`: lists served at a
+  private link from the person's Cloudflare account (ADR 0002), keys typed by the person into `connect.py`
+  (ADR 0007), `released_only` (ADR 0005), builders pin the release's commit (ADR 0009). Release tags can't
+  be moved or deleted and releases are immutable (ADR 0008); `main` takes only squash-merged PRs with the
+  three CI checks green. The owner's `tv-lists-builder` runs `v1.0.0`, pinned, for Stremio and TV Home.
+- **Next:** walk through `PROMPT.md` as a new user would and fix what's unclear; then M2, a first outside
+  user set up without help (`docs/checklist.md`).
 - **Later:** stage 2 (TV Home) and stage 3 (Clean Your TV showcase). See `docs/requirements.md#roadmap`.
 
 ## Where things live (read on demand)

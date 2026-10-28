@@ -45,13 +45,13 @@ someone without one should be able to follow the guides by hand.
 
 | Stage | What | Status |
 |---|---|---|
-| 1 | **Lists:** builder, setup guide, `PROMPT.md`, release `v1.0.0`; the owner's builder runs the public code | built, reviewed, running the owner's lists; waiting for publication |
+| 1 | **Lists:** builder, setup guide, `PROMPT.md`, release `v1.0.0`; the owner's builder runs the public code | released, `v1.0.0` on 2026-10-28; the owner's lists run from it |
 | 2 | **TV Home:** move the launcher in with every personal value in config (lists URL, tabs, weather, Twitch app ID, package id), a TV setup prompt with the safety rules (snapshot first, one change at a time, verify with screenshots), docs per tested TV; tested as a new user's install on a second device | not started |
 | 3 | **Outreach:** a row in Clean Your TV's `SHOWCASE.md`, and a small PR there with what we learned on Google TV (its home re-launching itself, the gear's quick settings, the Bluetooth pairing permission, a note for one TV model) | not started |
 
 ## Milestones
 
 - **M1** Stage 1 public: repo published, release tags protected, `v1.0.0` released, ruleset on `main`,
-  the owner's lists built from the release. The owner publishes.
+  the owner's lists built from the release. The owner publishes. Done 2026-10-28.
 - **M2** First outside user sets up their lists from `PROMPT.md` without help.
 - **M3** Stage 2 released.

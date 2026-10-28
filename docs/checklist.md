@@ -22,13 +22,13 @@ Tasks per stage. *owner* marks the owner's tasks: publishing, accounts, keys, me
 - [x] Second pre-publication review and its fixes: builders pin the release's commit (ADR 0009),
   `connect.py --cloudflare` makes a missing link, kept rows cut to catalog fields, gitleaks rules for
   private links and Client IDs, size checks that work in CI, `PROMPT.md` matching the guide
-- [ ] Recreate the repo again from one clean commit, because the first history still had personal
+- [x] Recreate the repo again from one clean commit, because the first history still had personal
   details — *owner*
-- [ ] Make it public; tag ruleset on `refs/tags/v*` blocking updates and deletions; immutable releases on
+- [x] Make it public; tag ruleset on `refs/tags/v*` blocking updates and deletions; immutable releases on
   (ADR 0008) — *owner*
-- [ ] Ruleset on `main`: PR required, CI checks required — *owner*
-- [ ] Release `v1.0.0` with notes that name its commit — *owner*
-- [ ] Switch `tv-lists-builder` to the `v1.0.0` workflow with its commit pinned (setup guide, step 3),
+- [x] Ruleset on `main`: PR required (squash only), the three CI checks required — *owner*
+- [x] Release `v1.0.0` (2026-10-28) with notes that name its commit, `dc0b61b` — *owner*
+- [x] Switch `tv-lists-builder` to the `v1.0.0` workflow with its commit pinned (setup guide, step 3),
   delete its copy of the code, check a run
 - [ ] Walk through `PROMPT.md` as a new user would and fix what's unclear
 
