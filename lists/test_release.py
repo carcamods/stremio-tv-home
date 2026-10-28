@@ -17,8 +17,9 @@ LINK = re.compile(
     r"|github\.com/carcamods/stremio-tv-home/(?:blob|tree)/([^/\s]+)/"
     r"|repos/carcamods/stremio-tv-home/commits/([^/\s\"]+)"
 )
-# The command in the guide that writes the commit into a builder's workflow.
+# The commands in the guide that write the commit into a builder's workflow: bash (sed) and PowerShell.
 PIN = "s/STREMIO_TV_HOME_COMMIT: .*/STREMIO_TV_HOME_COMMIT: $commit/"
+PIN_POWERSHELL = """-replace 'STREMIO_TV_HOME_COMMIT: .*', "STREMIO_TV_HOME_COMMIT: $commit\""""
 
 
 def workflow_version():
@@ -44,7 +45,9 @@ class Release(unittest.TestCase):
         self.assertNotRegex(placeholder, r"^[0-9a-f]{40}$")
         self.assertIn("ref: ${{ env.STREMIO_TV_HOME_COMMIT }}", text)
         self.assertNotIn("ref: ${{ env.STREMIO_TV_HOME_VERSION }}", text)
-        self.assertEqual(GUIDE.read_text(encoding="utf-8").count(PIN), 2, "setup and update both pin the commit")
+        guide = GUIDE.read_text(encoding="utf-8")
+        for pin in (PIN, PIN_POWERSHELL):
+            self.assertEqual(guide.count(pin), 2, f"setup and update both pin the commit: {pin}")
 
     def test_the_builder_workflow_pins_its_actions_to_a_commit(self):
         uses = re.findall(r"uses: (\S+)", WORKFLOW.read_text(encoding="utf-8"))

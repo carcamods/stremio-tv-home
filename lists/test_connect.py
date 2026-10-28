@@ -3,6 +3,7 @@
 import contextlib
 import io
 import json
+import os
 import subprocess
 import sys
 import unittest
@@ -18,11 +19,12 @@ TRAKT_TOKEN = {"access_token": "FAKE-ACCESS", "refresh_token": "FAKE-REFRESH", "
 
 class FakeGh:
     """Records the gh commands run, with what went in on standard input. The builder repo is private and
-    already has the secrets named in `existing`."""
+    already has the secrets named in `existing`, and `addon_url` as its ADDON_URL variable."""
 
-    def __init__(self, existing=()):
+    def __init__(self, existing=(), addon_url=""):
         self.runs = []
         self.existing = list(existing)
+        self.addon_url = addon_url
 
     def __call__(self, args, input=None, **kwargs):
         self.runs.append((args, input))
@@ -31,6 +33,10 @@ class FakeGh:
             stdout = json.dumps({"isPrivate": True, "isFork": False, "nameWithOwner": REPO})
         elif args[1:3] == ["secret", "list"]:
             stdout = "\n".join(self.existing + list(self.stored()))
+        elif args[1:3] == ["variable", "list"]:
+            stdout = self.addon_url + "\n"
+        elif args[1:4] == ["variable", "set", "ADDON_URL"]:
+            self.addon_url = args[args.index("--body") + 1]
         return subprocess.CompletedProcess(args, 0, stdout=stdout, stderr="")
 
     def stored(self):
@@ -121,16 +127,32 @@ class Secrets(unittest.TestCase):
 
 
 class Terminal(unittest.TestCase):
-    def test_refuses_to_run_without_a_terminal_of_its_own(self):
-        # An agent's shell, or a pipe: no terminal to read keys from without showing them.
+    """connect.py runs only in a terminal window of the person's own, never in an agent's shell."""
+
+    def assertRefuses(self, stdin, stdout):
         with (
             mock.patch.object(sys, "argv", ["connect.py", "--repo", REPO]),
-            mock.patch.object(sys, "stdin", io.StringIO()),
+            mock.patch.object(sys, "stdin", stdin),
+            mock.patch.object(sys, "stdout", stdout),
             mock.patch("subprocess.run", side_effect=AssertionError("ran gh")),
         ):
             with self.assertRaises(SystemExit) as stop:
                 connect.main()
         self.assertIn("not through a coding agent", str(stop.exception))
+
+    def test_refuses_without_a_terminal_to_read_keys_from(self):
+        # A pipe, as in most agents' shells.
+        self.assertRefuses(io.StringIO(), mock.Mock(isatty=lambda: True))
+
+    def test_refuses_when_an_agent_reads_the_output(self):
+        # Input that passes for a terminal, as an agent's empty input does on Windows, but the output captured:
+        # the private link would land in the agent's chat.
+        self.assertRefuses(mock.Mock(isatty=lambda: True), io.StringIO())
+
+    def test_refuses_on_the_null_device(self):
+        # What an agent's PowerShell gives a command on Windows: isatty() is true there, but it isn't a console.
+        with open(os.devnull) as null_in, open(os.devnull, "w") as null_out:
+            self.assertRefuses(null_in, null_out)
 
 
 class RunningItAgain(unittest.TestCase):
@@ -141,7 +163,7 @@ class RunningItAgain(unittest.TestCase):
         out = io.StringIO()
         with (
             mock.patch.object(sys, "argv", ["connect.py", "--repo", REPO, *flags]),
-            mock.patch.object(sys, "stdin", mock.Mock(isatty=lambda: True)),
+            mock.patch.object(connect, "own_terminal", return_value=True),
             mock.patch("shutil.which", return_value="gh"),
             mock.patch("subprocess.run", gh),
             mock.patch("builtins.input", side_effect=AssertionError("asked a question")),
@@ -163,10 +185,24 @@ class RunningItAgain(unittest.TestCase):
         self.assertIn(f"https://tv-lists.someone.workers.dev/{key}/", out)
 
     def test_cloudflare_again_keeps_the_link(self):
-        gh = FakeGh(existing=["TRAKT_CLIENT_ID", "TRAKT_TOKEN_JSON", "ADDON_KEY"])
+        gh = FakeGh(
+            existing=["TRAKT_CLIENT_ID", "TRAKT_TOKEN_JSON", "ADDON_KEY"],
+            addon_url="https://tv-lists.someone.workers.dev",
+        )
         out = self.run_connect(gh, "--cloudflare")
         self.assertNotIn("ADDON_KEY", gh.stored())
         self.assertIn("Your private link stays the same", out)
+
+    def test_cloudflare_again_makes_a_new_link_when_its_address_changed(self):
+        # The person renamed their workers.dev subdomain: the old link stops working at the next run.
+        gh = FakeGh(
+            existing=["TRAKT_CLIENT_ID", "TRAKT_TOKEN_JSON", "ADDON_KEY"],
+            addon_url="https://tv-lists.oldname.workers.dev",
+        )
+        out = self.run_connect(gh, "--cloudflare")
+        key = gh.stored()["ADDON_KEY"]
+        self.assertIn("address changed", out)
+        self.assertIn(f"https://tv-lists.someone.workers.dev/{key}/", out)
 
     def test_a_rejected_token_stops_before_any_question(self):
         gh = FakeGh(existing=["TRAKT_CLIENT_ID", "TRAKT_TOKEN_JSON"])

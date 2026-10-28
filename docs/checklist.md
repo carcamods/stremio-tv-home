@@ -30,7 +30,10 @@ Tasks per stage. *owner* marks the owner's tasks: publishing, accounts, keys, me
 - [x] Release `v1.0.0` (2026-10-28) with notes that name its commit, `dc0b61b` — *owner*
 - [x] Switch `tv-lists-builder` to the `v1.0.0` workflow with its commit pinned (setup guide, step 3),
   delete its copy of the code, check a run
-- [ ] Walk through `PROMPT.md` as a new user would and fix what's unclear
+- [x] Walk through `PROMPT.md` as a new user would and fix what's unclear (2026-10-28, without real
+  accounts: commands, messages and current Trakt and Cloudflare docs; fixes in `v1.0.1`)
+- [ ] Release `v1.0.1` with notes that name its commit — *owner*
+- [ ] M2: a first outside user sets up their lists from `PROMPT.md`, with real accounts, without help
 
 ## Stage 2: TV Home
 

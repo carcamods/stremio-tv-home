@@ -529,13 +529,18 @@ def main():
     problems = check_config(config)
     if problems:
         sys.exit(f"Fix {args.config}:\n- " + "\n- ".join(problems))
-    client_id = os.environ.get("TRAKT_CLIENT_ID") or sys.exit("TRAKT_CLIENT_ID is not set")
+    client_id = os.environ.get("TRAKT_CLIENT_ID") or sys.exit(
+        "TRAKT_CLIENT_ID is not set. Run connect.py (see lists/README.md)."
+    )
     token_path = args.state / "trakt-token.json"
     trakt = Trakt(client_id, newest_token(token_path, os.environ.get("TRAKT_TOKEN_JSON")), token_path)
     try:
         trakt.ensure_fresh_token(force=args.force_refresh)
     except RuntimeError as e:
-        sys.exit(f"Trakt didn't renew the sign-in ({e}). Sign in again: run connect.py with --trakt.")
+        sys.exit(
+            f"Trakt didn't renew the sign-in ({e}). Check that your Trakt app's Redirect URI is {REDIRECT_URI}, "
+            "then sign in again: run connect.py with --trakt."
+        )
 
     site = args.state / "site"
     aired_path = args.state / "aired.json"
