@@ -1,0 +1,17 @@
+# gitleaks reads this file from the repo root, at commit time (pre-commit) and in CI. Its default rules, plus
+# two values this project must never commit that they miss: a private link and a Trakt app's Client ID.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "stremio-tv-home-private-link"
+description = "A private link to someone's lists: a workers.dev address with its random key"
+regex = '''\.workers\.dev/[A-Za-z0-9_-]{32,}'''
+keywords = ["workers.dev"]
+
+[[rules]]
+id = "trakt-client-id"
+description = "A Trakt app's Client ID (64 hex characters) next to the word Trakt or client"
+regex = '''(?i)(?:trakt|client)[^\n]{0,40}?\b([0-9a-f]{64})\b'''
+secretGroup = 1
+keywords = ["trakt", "client"]

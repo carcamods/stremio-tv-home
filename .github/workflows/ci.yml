@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint and tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The oldest Python the guides promise, and a current one.
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Pre-commit hooks (ruff, formatting, file checks)
+        # gitleaks runs in its own job below, over the full history.
+        run: uvx pre-commit@4.7.0 run --all-files --show-diff-on-failure
+        env:
+          SKIP: gitleaks
+      # uv runs the tests on the matrix Python (the runner's own python3 would be newer).
+      - name: Tests (offline, including the core invariant)
+        run: |
+          uv run --no-project --python ${{ matrix.python-version }} python -VV
+          uv run --no-project --python ${{ matrix.python-version }} python -m unittest discover -s lists -v
+
+  secrets:
+    name: Secret scan (gitleaks, full history)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      # The gitleaks binary over every commit. (gitleaks-action scans only the pushed range, starting from
+      # the parent of its first commit, and fails on a repo's first push, whose root commit has none.)
+      - name: gitleaks
+        env:
+          VERSION: 8.30.1
+          # The tarball's SHA-256, checked by hand against the release when the version changes.
+          SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -sSfLO https://github.com/gitleaks/gitleaks/releases/download/v$VERSION/gitleaks_${VERSION}_linux_x64.tar.gz
+          echo "$SHA256  gitleaks_${VERSION}_linux_x64.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks_${VERSION}_linux_x64.tar.gz gitleaks
+          ./gitleaks git . --config .gitleaks.toml --redact --verbose --exit-code 1

@@ -1,0 +1,15 @@
+{
+  "addon_id": "io.github.YOUR-GITHUB-USER.tvlists",
+  "name": "My TV Lists",
+  "description": "My Trakt watchlist, recommendations and lists. Updated every 3 hours.",
+  "country": "us",
+  "max_items": 200,
+  "catalogs": [
+    { "kind": "watchlist", "name": "Watchlist", "sort": "added,desc", "released_only": false },
+    { "kind": "recommendations", "media": "movies", "name": "Recommended Movies" },
+    { "kind": "recommendations", "media": "shows", "name": "Recommended Series" },
+    { "kind": "smart_lists", "sort": "released,desc" },
+    { "kind": "personal_lists" },
+    { "kind": "liked_lists", "sort": "released,desc" }
+  ]
+}

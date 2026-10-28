@@ -1,0 +1,8 @@
+# Never commit a sign-in, key or personal config
+token.json
+*.token.json
+.state/
+lists/lists.json
+
+# Python caches
+__pycache__/
