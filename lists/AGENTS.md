@@ -6,7 +6,8 @@ Cloudflare account, which serves them at their private link (ADR 0002). It runs 
 builder repo (`builder/publish-lists.yml`) from a release tag of this repo. It knows nothing about TV Home,
 which only downloads the published files.
 
-**Status:** stage 1, `v1.0.0` released on 2026-10-28 (commit `dc0b61b`). Serves the owner's lists from
+**Status:** stage 1, `v1.0.0` released on 2026-10-28 (commit `dc0b61b`); `main` holds `v1.0.1`, the
+walk-through fixes, waiting for its release. Serves the owner's lists from
 Cloudflare every 3 hours (`tv-lists-builder`, on `v1.0.0` with its commit pinned); the Trakt renewal, the
 cache between runs and paging past 100 titles in Stremio are checked in real runs. A change here reaches
 builders only through a new release (`docs/standards.md#releases`).
@@ -35,7 +36,9 @@ builders only through a new release (`docs/standards.md#releases`).
   run are cut to `META_FIELDS`; never pass a Trakt object through. Only `<state>/site` is uploaded: the
   sign-in and `aired.json` live beside it. `test_privacy.py` guards all of it (ADR 0004).
 - **Keys never pass through an agent, a file or a command line:** `connect.py` reads them hidden and hands
-  them to `gh` on standard input, and refuses to run without a terminal (ADR 0007).
+  them to `gh` on standard input, and refuses to run unless standard input and output are both a terminal,
+  on Windows real console handles (`own_terminal`; ADR 0007). Agents read the output, and on Windows the
+  empty input an agent's PowerShell gives a command passes `isatty()`, so checking input alone isn't enough.
 - **Standard library only:** the Action installs nothing, and people can run it anywhere.
 - **The refresh token is saved before anything else can fail:** Trakt's refresh tokens work once, and losing
   the new one means a new sign-in by hand.

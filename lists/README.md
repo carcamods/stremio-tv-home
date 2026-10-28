@@ -49,26 +49,33 @@ In the commands, `<you>` is your GitHub user name and `<builder>` the name of yo
    `http://localhost`; no permissions needed. Keep its **Client ID** at hand for step 4; you don't need the
    Client Secret. Create one app and use it only for yourself: Trakt asks people not to create extra apps
    to get around its rate limits.
-2. **Get a Cloudflare API token.** Sign up for Cloudflare's free plan, open **Workers & Pages** once, and if
-   it asks you to choose a `workers.dev` subdomain, pick one (it becomes part of your link; it doesn't need
-   to be your name). Then open **My Profile → API Tokens → Create Token → Create Custom Token**, give it one
+2. **Get a Cloudflare API token.** Sign up for Cloudflare's free plan and open **Workers & Pages**. If it
+   asks you to choose a `workers.dev` subdomain, pick one. Then look at **Your subdomain** there: it becomes
+   part of your link, so if it shows your name or your email's name, select **Change** and pick something
+   that doesn't (changing it later changes your link). Then open **My Profile → API Tokens → Create Token → Create Custom Token**, give it one
    permission, **Account · Workers Scripts · Edit**, limited to your account, and create it. Keep the token
    at hand for step 4: Cloudflare shows it only once.
 3. **Create your private builder repo** with the workflow and an example `lists.json`. Do it in your home
-   folder or another folder that isn't inside a git repo:
+   folder or another folder that isn't inside a git repo (on Windows, in Git Bash; PowerShell below):
    ```bash
    gh repo create <builder> --private --clone
    cd <builder>
    mkdir -p .github/workflows
-   curl -fsSL https://raw.githubusercontent.com/carcamods/stremio-tv-home/v1.0.0/lists/builder/publish-lists.yml -o .github/workflows/publish-lists.yml
-   curl -fsSL https://raw.githubusercontent.com/carcamods/stremio-tv-home/v1.0.0/lists/lists.example.json -o lists.json
-   commit=$(gh api repos/carcamods/stremio-tv-home/commits/v1.0.0 --jq .sha)
+   curl -fsSL https://raw.githubusercontent.com/carcamods/stremio-tv-home/v1.0.1/lists/builder/publish-lists.yml -o .github/workflows/publish-lists.yml
+   curl -fsSL https://raw.githubusercontent.com/carcamods/stremio-tv-home/v1.0.1/lists/lists.example.json -o lists.json
+   commit=$(gh api repos/carcamods/stremio-tv-home/commits/v1.0.1 --jq .sha)
    sed -i.bak "s/STREMIO_TV_HOME_COMMIT: .*/STREMIO_TV_HOME_COMMIT: $commit/" .github/workflows/publish-lists.yml
    rm .github/workflows/publish-lists.yml.bak
    ```
-   The last three commands pin the workflow to the commit `v1.0.0` points to today, so your builder keeps
-   running exactly that code even if the tag or this repo were ever changed:
-   `grep COMMIT .github/workflows/publish-lists.yml` shows a 40-character commit id.
+   In PowerShell, write `curl.exe`, and the last three lines are:
+   ```powershell
+   $commit = gh api repos/carcamods/stremio-tv-home/commits/v1.0.1 --jq .sha
+   $wf = ".github/workflows/publish-lists.yml"
+   (Get-Content $wf -Raw) -replace 'STREMIO_TV_HOME_COMMIT: .*', "STREMIO_TV_HOME_COMMIT: $commit" | Set-Content $wf -NoNewline
+   ```
+   They pin the workflow to the commit `v1.0.1` points to today, so your builder keeps running exactly that
+   code even if the tag or this repo were ever changed: the line `STREMIO_TV_HOME_COMMIT:` in
+   `.github/workflows/publish-lists.yml` now ends in a 40-character commit id.
 
    Choose your lists in `lists.json` ([reference](#listsjson) below): replace `YOUR-GITHUB-USER`, pick your
    country and your rows. Then commit and push both files:
@@ -80,7 +87,7 @@ In the commands, `<you>` is your GitHub user name and `<builder>` the name of yo
 4. **Connect Trakt and Cloudflare.** Open a terminal window of your own (on Windows, PowerShell) in your
    home folder, and run:
    ```bash
-   curl -fsSLO https://raw.githubusercontent.com/carcamods/stremio-tv-home/v1.0.0/lists/connect.py
+   curl -fsSLO https://raw.githubusercontent.com/carcamods/stremio-tv-home/v1.0.1/lists/connect.py
    python3 connect.py --repo <you>/<builder>
    ```
    In PowerShell, write `curl.exe` and `py`. It asks for the Client ID and the API token without showing
@@ -94,10 +101,15 @@ In the commands, `<you>` is your GitHub user name and `<builder>` the name of yo
    gh variable set LISTS_ENABLED --repo <you>/<builder> --body true
    gh workflow run publish-lists.yml --repo <you>/<builder> -f force_refresh=true
    gh run list --repo <you>/<builder> --workflow publish-lists.yml --event workflow_dispatch --limit 1
-   gh run watch <run id from the line above> --repo <you>/<builder> --exit-status
    ```
-   It takes a minute or two. The run to watch is the one that started less than a minute ago: if the list
-   is empty or shows an older run, wait a few seconds and list again.
+   The list shows the run you just started, less than a minute old; if it's empty or older, wait a few
+   seconds and list again. Then follow that run (a minute or two):
+   ```bash
+   id=$(gh run list --repo <you>/<builder> --workflow publish-lists.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId')
+   gh run watch "$id" --repo <you>/<builder> --exit-status
+   ```
+   In PowerShell, the first line is
+   `$id = gh run list --repo <you>/<builder> --workflow publish-lists.yml --event workflow_dispatch --limit 1 --json databaseId --jq ".[0].databaseId"`.
 6. **Add it to Stremio:** open your private link on your phone or computer and press **Install in
    Stremio**, or paste the link with `manifest.json` added at the end into Stremio's addon search. Your lists
    appear as rows on Stremio's board and under Discover.
@@ -149,8 +161,11 @@ Stremio keeps showing the last published lists meanwhile, and GitHub emails you 
   keeps its last titles and the job's log marks it with `!`. If no list at all can be read, the run fails.
 - **The Trakt sign-in stops working** (the run fails and says so; for example after a week without runs,
   when GitHub drops the cache that holds the newest sign-in): sign in again with
-  `python3 connect.py --repo <you>/<builder> --trakt`. The next run picks up the new sign-in by itself.
+  `python3 connect.py --repo <you>/<builder> --trakt`. The next run picks up the new sign-in by itself. If
+  it already fails on the first run, check that your Trakt app's Redirect URI is `http://localhost` first.
 - **Your Cloudflare token expired or was revoked:** create a new one (step 2), then `--cloudflare`.
+- **You changed your `workers.dev` subdomain:** run `--cloudflare`; it shows your new link, because the old
+  one stops working after the next run. Install the addon again from the new link.
 - **Your link leaked or got lost:** `--new-link` makes a new one; the old one stops working after the next
   run. Install the addon again from the new link.
 - **Your builder repo was public, even briefly:** make it private again
@@ -184,5 +199,13 @@ rm .github/workflows/publish-lists.yml.bak
 git add .github/workflows/publish-lists.yml
 git commit -m "Update to $version"
 git push
+```
+In PowerShell, the lines before `git add` are:
+```powershell
+$version = "vX.Y.Z"
+curl.exe -fsSL "https://raw.githubusercontent.com/carcamods/stremio-tv-home/$version/lists/builder/publish-lists.yml" -o .github/workflows/publish-lists.yml
+$commit = gh api "repos/carcamods/stremio-tv-home/commits/$version" --jq .sha
+$wf = ".github/workflows/publish-lists.yml"
+(Get-Content $wf -Raw) -replace 'STREMIO_TV_HOME_COMMIT: .*', "STREMIO_TV_HOME_COMMIT: $commit" | Set-Content $wf -NoNewline
 ```
 This takes the new release's workflow too. If you changed anything else in it, make that change again.

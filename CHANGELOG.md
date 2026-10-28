@@ -2,6 +2,26 @@
 
 Newest first. Each entry says what changed and why.
 
+## [2026-10-28] v1.0.1: fixes from walking through PROMPT.md as a new user
+
+### Fixed
+
+- `connect.py` refuses to run in an agent's shell on Windows too. It checked only that its input was a
+  terminal, and in PowerShell, which Windows agents use, the empty input an agent gives a command passes
+  that check: an agent could have started it, and the private link would have been printed into the
+  agent's output (ADR 0007). It now needs both input and output to be a terminal, on Windows real console
+  handles; tested in Git Bash, PowerShell and a real console window.
+- `connect.py --cloudflare` makes and shows a new link when the link's address changed (another
+  `workers.dev` subdomain or Worker), instead of saying the link stays the same while the old one dies.
+- The setup guide's commit pin and update steps have PowerShell lines next to the bash ones: on Windows
+  people and agents often work in PowerShell, where `$(...)` and `sed` don't exist.
+- Following the first run picks up its ID by itself, instead of a `<run id>` placeholder people typed as
+  written. The guides also say to check the `workers.dev` subdomain doesn't show the person's name, since
+  it's part of the link.
+- When the first renewal fails, the message and the guides point to the Trakt app's Redirect URI, which
+  signing in again can't fix. "TRAKT_CLIENT_ID is not set" now says to run `connect.py`. `PROMPT.md` tells
+  the agent not to guess Trakt's menus when helping with Smart lists.
+
 ## [2026-10-28] v1.0.0 released
 
 ### Changed

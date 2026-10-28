@@ -25,8 +25,9 @@ task needs, not the whole repo.
   (ADR 0007), `released_only` (ADR 0005), builders pin the release's commit (ADR 0009). Release tags can't
   be moved or deleted and releases are immutable (ADR 0008); `main` takes only squash-merged PRs with the
   three CI checks green. The owner's `tv-lists-builder` runs `v1.0.0`, pinned, for Stremio and TV Home.
-- **Next:** walk through `PROMPT.md` as a new user would and fix what's unclear; then M2, a first outside
-  user set up without help (`docs/checklist.md`).
+- **Next (owner):** release `v1.0.1`, the fixes from walking through `PROMPT.md` as a new user (above all
+  `connect.py` refusing to run in an agent's PowerShell on Windows), with its commit in the notes; then M2,
+  a first outside user set up without help (`docs/checklist.md`).
 - **Later:** stage 2 (TV Home) and stage 3 (Clean Your TV showcase). See `docs/requirements.md#roadmap`.
 
 ## Where things live (read on demand)

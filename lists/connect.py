@@ -7,7 +7,7 @@ GitHub CLI: no key is written to a file, a command line or a chat. It ends with 
 
     python3 connect.py --repo <you>/<builder>               # the first time: all of it
     python3 connect.py --repo <you>/<builder> --trakt       # sign in to Trakt again
-    python3 connect.py --repo <you>/<builder> --cloudflare  # a new Cloudflare API token (and the link, if none yet)
+    python3 connect.py --repo <you>/<builder> --cloudflare  # a new Cloudflare API token (and link, if needed)
     python3 connect.py --repo <you>/<builder> --new-link    # a new private link; the old one stops working
 
 It needs a terminal window of your own (on Windows, PowerShell) and the GitHub CLI, signed in. Standard
@@ -18,6 +18,7 @@ import argparse
 import getpass
 import http.client
 import json
+import os
 import re
 import secrets
 import shutil
@@ -94,6 +95,27 @@ def ask_hidden(prompt):
 
 def confirm(prompt):
     return input(prompt).strip().lower() in ("y", "yes")
+
+
+def own_terminal():
+    """Whether standard input and output are a terminal window of the person's own. An agent reads what a
+    command prints, and on Windows the empty input agents give a command passes isatty(), so both streams are
+    checked, and on Windows as real console handles."""
+    streams = (sys.stdin, sys.stdout)
+    if not all(stream.isatty() for stream in streams):
+        return False
+    if os.name != "nt":
+        return True
+    import ctypes
+    import msvcrt
+    from ctypes import wintypes
+
+    try:
+        handles = [msvcrt.get_osfhandle(stream.fileno()) for stream in streams]
+    except (OSError, ValueError):
+        return False
+    mode = wintypes.DWORD()
+    return all(ctypes.windll.kernel32.GetConsoleMode(ctypes.c_void_p(h), ctypes.byref(mode)) for h in handles)
 
 
 def trakt_sign_in(client_id, post=trakt_post):
@@ -173,6 +195,12 @@ def connect_cloudflare(repo, worker, ask=ask_hidden, api=cloudflare):
     return url
 
 
+def addon_url(repo):
+    """The builder repo's ADDON_URL variable, or "" when it isn't set."""
+    jq = '.[] | select(.name == "ADDON_URL") | .value'
+    return gh("variable", "list", "--repo", repo, "--json", "name,value", "--jq", jq).strip()
+
+
 def new_link(repo, url):
     """Makes a new random key for the private link, stores it and returns the link."""
     key = secrets.token_urlsafe(24)
@@ -188,17 +216,17 @@ def main():
     only = parser.add_mutually_exclusive_group()
     only.add_argument("--trakt", action="store_true", help="only sign in to Trakt again")
     only.add_argument(
-        "--cloudflare", action="store_true", help="only store a new Cloudflare API token (and the link, if none yet)"
+        "--cloudflare", action="store_true", help="only store a new Cloudflare API token (and link, if needed)"
     )
     only.add_argument("--new-link", action="store_true", help="only make a new private link")
     parser.add_argument("--worker", default="tv-lists", help="name of the Cloudflare Worker (default tv-lists)")
     args = parser.parse_args()
 
-    if not sys.stdin.isatty():
+    if not own_terminal():
         sys.exit(
             "Run this yourself, in a terminal window of your own, not through a coding agent: it asks for your "
-            "keys without showing them. On Windows use PowerShell (py connect.py ...), or in Git Bash "
-            "winpty py connect.py ..."
+            "keys without showing them and shows your private link. On Windows use PowerShell "
+            "(py connect.py ...), or in Git Bash winpty py connect.py ..."
         )
     if not WORKER.fullmatch(args.worker):
         sys.exit("--worker takes lowercase letters, digits and hyphens.")
@@ -212,21 +240,24 @@ def main():
 
     if everything or args.trakt:
         connect_trakt(name)
-    url = None
+    url = before = None
     if everything or args.cloudflare:
+        before = addon_url(name)
         url = connect_cloudflare(name, args.worker)
     if everything or args.cloudflare or args.new_link:
-        # --cloudflare makes the link too when there's none yet: after a first run that stopped at Cloudflare.
+        # --cloudflare makes the link too when there's none yet (after a first run that stopped at Cloudflare),
+        # and when its address changed (another workers.dev subdomain or Worker): the old one stops working.
         stored = "" if args.new_link else gh("secret", "list", "--repo", name, "--json", "name", "--jq", ".[].name")
         if "ADDON_KEY" in stored.split():
-            if args.cloudflare or not confirm(
+            if before and url != before:
+                say(f"\n   Your link's address changed from {before} to {url}, so here is a new link.")
+            elif args.cloudflare or not confirm(
                 "\n   You already have a private link. Make a new one? The old one stops working after the next run. "
                 "[y/N] "
             ):
                 say("\nDone. Your private link stays the same.")
                 return
-        jq = '.[] | select(.name == "ADDON_URL") | .value'
-        url = url or gh("variable", "list", "--repo", name, "--json", "name,value", "--jq", jq).strip()
+        url = url or addon_url(name)
         if not url:
             sys.exit("Connect Cloudflare first: run this again with --cloudflare.")
         link = new_link(name, url)

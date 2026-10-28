@@ -1,6 +1,6 @@
 # Rebuilds your Stremio lists addon from Trakt every 3 hours and serves it from your own Cloudflare
 # account, at your private link. Goes in YOUR PRIVATE builder repo as .github/workflows/publish-lists.yml,
-# next to your lists.json. Setup: https://github.com/carcamods/stremio-tv-home/blob/v1.0.0/lists/README.md
+# next to your lists.json. Setup: https://github.com/carcamods/stremio-tv-home/blob/v1.0.1/lists/README.md
 #
 # Set by connect.py: the secrets TRAKT_CLIENT_ID, TRAKT_TOKEN_JSON, CLOUDFLARE_API_TOKEN,
 # CLOUDFLARE_ACCOUNT_ID and ADDON_KEY, and the variable ADDON_URL. Set by you: the variable LISTS_ENABLED=true,
@@ -21,7 +21,7 @@ env:
   # The builder code runs with your Trakt sign-in and your Cloudflare token, so it comes from a fixed
   # release of the public repo, at the commit that release had when you set it up: a tag moved later, or a
   # repo replaced under the same name, can't change what runs. To update, follow "Updating" in the guide.
-  STREMIO_TV_HOME_VERSION: v1.0.0
+  STREMIO_TV_HOME_VERSION: v1.0.1
   STREMIO_TV_HOME_COMMIT: filled-in-by-the-setup-guide
 
 concurrency:
