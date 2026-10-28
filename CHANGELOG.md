@@ -51,4 +51,5 @@ Newest first. Each entry says what changed and why.
   that repo was ever public, and that private lists you liked are visible at the link too.
 - `.gitleaks.toml` adds rules for private links and Trakt Client IDs, which the default rules missed. The
   file-size hooks use `--enforce-all`: before, they checked only files being added, so in CI they checked
-  nothing. Hooks are pinned to commits, and CI runs a fixed pre-commit version.
+  nothing. Hooks are pinned to commits, and CI runs a fixed pre-commit version, on Python 3.13 in both
+  jobs because it needs 3.11 or newer (the tests still run on 3.9 and 3.13).

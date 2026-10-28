@@ -23,8 +23,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Pre-commit hooks (ruff, formatting, file checks)
-        # gitleaks runs in its own job below, over the full history.
-        run: uvx pre-commit@4.7.0 run --all-files --show-diff-on-failure
+        # gitleaks runs in its own job below, over the full history. pre-commit itself needs Python 3.11 or
+        # newer, so it runs on 3.13 in both jobs; the tests below use the matrix Python.
+        run: uvx --python 3.13 pre-commit@4.7.0 run --all-files --show-diff-on-failure
         env:
           SKIP: gitleaks
       # uv runs the tests on the matrix Python (the runner's own python3 would be newer).
