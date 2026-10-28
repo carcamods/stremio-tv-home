@@ -6,9 +6,9 @@ Cloudflare account, which serves them at their private link (ADR 0002). It runs 
 builder repo (`builder/publish-lists.yml`) from a release tag of this repo. It knows nothing about TV Home,
 which only downloads the published files.
 
-**Status:** stage 1, `v1.0.0` released on 2026-10-28 (commit `dc0b61b`); `main` holds `v1.0.1`, the
-walk-through fixes, waiting for its release. Serves the owner's lists from
-Cloudflare every 3 hours (`tv-lists-builder`, on `v1.0.0` with its commit pinned); the Trakt renewal, the
+**Status:** stage 1, `v1.0.1` released on 2026-10-28 (commit `2258b6e`), the walk-through fixes on top of
+`v1.0.0` (`dc0b61b`). Serves the owner's lists from
+Cloudflare every 3 hours (`tv-lists-builder`, on `v1.0.1` with its commit pinned); the Trakt renewal, the
 cache between runs and paging past 100 titles in Stremio are checked in real runs. A change here reaches
 builders only through a new release (`docs/standards.md#releases`).
 
