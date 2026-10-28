@@ -2,6 +2,15 @@
 
 Newest first. Each entry says what changed and why.
 
+## [2026-10-28] v1.0.1 released
+
+### Changed
+
+- `v1.0.1` is released at commit `2258b6e`, which its release notes name. Builders on `v1.0.0` keep
+  working and needn't update; the notes tell anyone whose `connect.py` an agent ran on Windows to make a
+  new link.
+- The owner's builder moved to `v1.0.1` with the guide's PowerShell "Updating" lines, and its run passed.
+
 ## [2026-10-28] v1.0.1: fixes from walking through PROMPT.md as a new user
 
 ### Fixed

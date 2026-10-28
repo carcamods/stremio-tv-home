@@ -24,10 +24,11 @@ task needs, not the whole repo.
   private link from the person's Cloudflare account (ADR 0002), keys typed by the person into `connect.py`
   (ADR 0007), `released_only` (ADR 0005), builders pin the release's commit (ADR 0009). Release tags can't
   be moved or deleted and releases are immutable (ADR 0008); `main` takes only squash-merged PRs with the
-  three CI checks green. The owner's `tv-lists-builder` runs `v1.0.0`, pinned, for Stremio and TV Home.
-- **Next (owner):** release `v1.0.1`, the fixes from walking through `PROMPT.md` as a new user (above all
-  `connect.py` refusing to run in an agent's PowerShell on Windows), with its commit in the notes; then M2,
-  a first outside user set up without help (`docs/checklist.md`).
+  three CI checks green. `v1.0.1` released the same day at commit `2258b6e`: the fixes from walking through
+  `PROMPT.md` as a new user, above all `connect.py` refusing to run in an agent's PowerShell on Windows. The
+  owner's `tv-lists-builder` runs `v1.0.1`, pinned, for Stremio and TV Home.
+- **Next:** M2, a first outside user sets up their lists from `PROMPT.md` without help
+  (`docs/checklist.md`).
 - **Later:** stage 2 (TV Home) and stage 3 (Clean Your TV showcase). See `docs/requirements.md#roadmap`.
 
 ## Where things live (read on demand)
